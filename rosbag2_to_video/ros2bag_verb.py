@@ -12,13 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
+from ros2bag.verb import VerbExtension
 
 from . import api
 
+class ToVideo(VerbExtension):
+    """Convert a ROS 2 bag into a video."""
 
-def main():
-    argparser = argparse.ArgumentParser(description='Convert a ROS 2 bag into a video')
-    api.add_arguments_to_parser(argparser)
-    args = argparser.parse_args()
-    api.convert_bag_to_video(args)
+    def add_arguments(self, parser, cli_name):
+        api.add_arguments_to_parser(parser)
+        
+
+    def main(self, *, args):
+        api.convert_bag_to_video(args)

@@ -22,5 +22,8 @@ setup(
         'console_scripts': [
             'rosbag2_to_video = rosbag2_to_video:main',
         ],
+        'ros2bag.verb': [
+            'to_video = rosbag2_to_video.ros2bag_verb:ToVideo',
+        ],
     },
 )
