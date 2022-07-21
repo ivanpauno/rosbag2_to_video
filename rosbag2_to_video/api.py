@@ -37,7 +37,9 @@ def add_arguments_to_parser(argparser):
         '-t',
         '--topic',
         required=True,
-        help='Name of the image topic (currently only supports sensor_msgs/msg/Image or sensor_msgs/msg/CompressedImage types)' # noqa E501
+        help=(
+            'Name of the image topic (currently only supports sensor_msgs/msg/Image or '
+            'sensor_msgs/msg/CompressedImage types)')
     )
     argparser.add_argument(
         '-o',
