@@ -47,6 +47,7 @@ def add_arguments_to_parser(argparser):
     )
     argparser.add_argument('--fps', type=int, required=True, help='Output frames per second')
     argparser.add_argument('--storage-id', type=str, default="sqlite3", help='Rosbag2 storage id')
+    argparser.add_argument('--codec', type=str, default="avc1", help='Video codec')
 
 
 def convert_bag_to_video(args):
@@ -95,7 +96,7 @@ def convert_bag_to_video(args):
     success = video_writer.open(
         args.output,
         cv2.CAP_FFMPEG,
-        cv2.VideoWriter.fourcc('m', 'p', '4', 'v'),
+        cv2.VideoWriter.fourcc(*args.codec),
         args.fps,
         (width, height))
     if not success:
