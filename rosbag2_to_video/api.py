@@ -82,7 +82,7 @@ def convert_bag_to_video(args):
     if not bag_reader.has_next():
         print('empty bag file')
         return
-    msg_type = get_message(type_map[args.topic])
+    msg_type = get_message(topic_type)
 
     _, data, _ = bag_reader.read_next()
     image_msg = deserialize_message(data, msg_type)
