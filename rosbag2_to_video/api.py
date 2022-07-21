@@ -30,10 +30,23 @@ def get_stamp_from_image_msg(image_msg):
 
 def add_arguments_to_parser(argparser):
     argparser.add_argument(
-        'bagfile', help='Path to the bag (currently only supports sensor_msgs/msg/Image types)')
-    argparser.add_argument('-t','--topic', required=True, help='Name of the image topic')
-    argparser.add_argument('-o','--output', required=True, help='Output filename (currently only supports MP4)')
+        'bagfile',
+        help='Path to the bag (currently only supports sensor_msgs/msg/Image or sensor_msgs/msg/CompressedImage types)' # noqa E501
+    )
+    argparser.add_argument(
+        '-t',
+        '--topic',
+        required=True,
+        help='Name of the image topic'
+    )
+    argparser.add_argument(
+        '-o',
+        '--output',
+        required=True,
+        help='Output filename (currently only supports MP4)'
+    )
     argparser.add_argument('--fps', type=int, required=True, help='Output frames per second')
+    argparser.add_argument('--storage-id', type=str, default="sqlite3", help='Rosbag2 storage id')
 
 
 def convert_bag_to_video(args):
@@ -41,13 +54,20 @@ def convert_bag_to_video(args):
     if args.output[-4:] != '.mp4':
         args.output += '.mp4'
 
-    storage_options = rosbag2_py.StorageOptions(uri=args.bagfile)
+    storage_options = rosbag2_py.StorageOptions(uri=args.bagfile, storage_id=args.storage_id)
     # TODO(jacobperron): Shouldn't we be able to infer serialization format from metadaya.yaml?
     converter_options = rosbag2_py.ConverterOptions(
         input_serialization_format='cdr', output_serialization_format='cdr')
 
     bag_reader = rosbag2_py.SequentialReader()
     bag_reader.open(storage_options, converter_options)
+
+    topic_types = bag_reader.get_all_topics_and_types()
+    type_map = {topic_types[i].name: topic_types[i].type for i in range(len(topic_types))}
+    print(type_map[args.topic])
+    if (type_map[args.topic] != 'sensor_msgs/msg/Image' and
+            type_map[args.topic] != 'sensor_msgs/msg/CompressedImage'):
+        raise ValueError('topic type should be sensor_msgs/msg/Image or sensor_msgs/msg/CompressedImage') # noqa E501
 
     storage_filter = rosbag2_py.StorageFilter(topics=[args.topic])
     bag_reader.set_filter(storage_filter)
@@ -58,17 +78,20 @@ def convert_bag_to_video(args):
     if not bag_reader.has_next():
         print('empty bag file')
         return
-    msg_type = get_message('sensor_msgs/msg/Image')
+    msg_type = get_message(type_map[args.topic])
 
     _, data, _ = bag_reader.read_next()
     image_msg = deserialize_message(data, msg_type)
-    # cv2.VideoWriter expects BGR encoding 
-    cv_image = cvbridge.imgmsg_to_cv2(image_msg, 'bgr8')
+    # cv2.VideoWriter expects BGR encoding
+    if type_map[args.topic] == 'sensor_msgs/msg/Image':
+        cv_image = cvbridge.imgmsg_to_cv2(image_msg, 'bgr8')
+    elif type_map[args.topic] == 'sensor_msgs/msg/CompressedImage':
+        cv_image = cvbridge.compressed_imgmsg_to_cv2(image_msg, 'bgr8')
     height, width, _ = cv_image.shape
     success = video_writer.open(
         args.output,
         cv2.CAP_FFMPEG,
-        cv2.VideoWriter.fourcc('a', 'v', 'c', '1'),
+        cv2.VideoWriter.fourcc('m', 'p', '4', 'v'),
         args.fps,
         (width, height))
     if not success:
@@ -89,8 +112,11 @@ def convert_bag_to_video(args):
         msg_count += 1
         _, data, _ = bag_reader.read_next()
         image_msg = deserialize_message(data, msg_type)
-        # cv2.VideoWriter expects BGR encoding 
-        cv_image = cvbridge.imgmsg_to_cv2(image_msg, 'bgr8')
+        # cv2.VideoWriter expects BGR encoding
+        if type_map[args.topic] == 'sensor_msgs/msg/Image':
+            cv_image = cvbridge.imgmsg_to_cv2(image_msg, 'bgr8')
+        elif type_map[args.topic] == 'sensor_msgs/msg/CompressedImage':
+            cv_image = cvbridge.compressed_imgmsg_to_cv2(image_msg, 'bgr8')
 
         # nanoseconds to seconds
         stamp = get_stamp_from_image_msg(image_msg)
