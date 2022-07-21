@@ -87,9 +87,9 @@ def convert_bag_to_video(args):
     _, data, _ = bag_reader.read_next()
     image_msg = deserialize_message(data, msg_type)
     # cv2.VideoWriter expects BGR encoding
-    if type_map[args.topic] == 'sensor_msgs/msg/Image':
+    if topic_type == 'sensor_msgs/msg/Image':
         cv_image = cvbridge.imgmsg_to_cv2(image_msg, 'bgr8')
-    elif type_map[args.topic] == 'sensor_msgs/msg/CompressedImage':
+    elif topic_type == 'sensor_msgs/msg/CompressedImage':
         cv_image = cvbridge.compressed_imgmsg_to_cv2(image_msg, 'bgr8')
     height, width, _ = cv_image.shape
     success = video_writer.open(
@@ -117,9 +117,9 @@ def convert_bag_to_video(args):
         _, data, _ = bag_reader.read_next()
         image_msg = deserialize_message(data, msg_type)
         # cv2.VideoWriter expects BGR encoding
-        if type_map[args.topic] == 'sensor_msgs/msg/Image':
+        if topic_type == 'sensor_msgs/msg/Image':
             cv_image = cvbridge.imgmsg_to_cv2(image_msg, 'bgr8')
-        elif type_map[args.topic] == 'sensor_msgs/msg/CompressedImage':
+        elif topic_type == 'sensor_msgs/msg/CompressedImage':
             cv_image = cvbridge.compressed_imgmsg_to_cv2(image_msg, 'bgr8')
 
         # nanoseconds to seconds
