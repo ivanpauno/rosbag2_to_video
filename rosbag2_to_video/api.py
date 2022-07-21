@@ -63,11 +63,15 @@ def convert_bag_to_video(args):
     bag_reader.open(storage_options, converter_options)
 
     topic_types = bag_reader.get_all_topics_and_types()
-    type_map = {topic_types[i].name: topic_types[i].type for i in range(len(topic_types))}
-    print(type_map[args.topic])
-    if (type_map[args.topic] != 'sensor_msgs/msg/Image' and
-            type_map[args.topic] != 'sensor_msgs/msg/CompressedImage'):
-        raise ValueError('topic type should be sensor_msgs/msg/Image or sensor_msgs/msg/CompressedImage') # noqa E501
+    try:
+        topic_type = next(x for x in topic_types if x.name == args.topic).type
+    except StopIteration:
+        print(f'Topic {args.topic} was not recorded in the bagfile')
+        return
+    if topic_type not in ('sensor_msgs/msg/Image', 'sensor_msgs/msg/CompressedImage'):
+          print(
+              'topic type should be sensor_msgs/msg/Image or '
+              f'sensor_msgs/msg/CompressedImage, got {topic_type}')
 
     storage_filter = rosbag2_py.StorageFilter(topics=[args.topic])
     bag_reader.set_filter(storage_filter)
