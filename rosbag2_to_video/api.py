@@ -31,13 +31,13 @@ def get_stamp_from_image_msg(image_msg):
 def add_arguments_to_parser(argparser):
     argparser.add_argument(
         'bagfile',
-        help='Path to the bag (currently only supports sensor_msgs/msg/Image or sensor_msgs/msg/CompressedImage types)' # noqa E501
+        help='Path to the bag'
     )
     argparser.add_argument(
         '-t',
         '--topic',
         required=True,
-        help='Name of the image topic'
+        help='Name of the image topic (currently only supports sensor_msgs/msg/Image or sensor_msgs/msg/CompressedImage types)' # noqa E501
     )
     argparser.add_argument(
         '-o',
