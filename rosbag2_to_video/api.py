@@ -75,6 +75,7 @@ def convert_bag_to_video(args):
           print(
               'topic type should be sensor_msgs/msg/Image or '
               f'sensor_msgs/msg/CompressedImage, got {topic_type}')
+          return
 
     storage_filter = rosbag2_py.StorageFilter(topics=[args.topic])
     bag_reader.set_filter(storage_filter)
