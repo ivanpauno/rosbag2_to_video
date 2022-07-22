@@ -21,4 +21,4 @@ def main():
     argparser = argparse.ArgumentParser(description='Convert a ROS 2 bag into a video')
     api.add_arguments_to_parser(argparser)
     args = argparser.parse_args()
-    api.convert_bag_to_video(args)
+    api.main(args)

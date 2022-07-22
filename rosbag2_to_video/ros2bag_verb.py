@@ -24,4 +24,4 @@ class ToVideo(VerbExtension):
         api.add_arguments_to_parser(parser)
 
     def main(self, *, args):
-        api.convert_bag_to_video(args)
+        api.main(args)
