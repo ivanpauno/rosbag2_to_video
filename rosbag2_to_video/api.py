@@ -18,6 +18,7 @@ from rclpy.serialization import deserialize_message
 import rclpy.time
 
 import cv2
+import os
 from cv_bridge import CvBridge
 
 
@@ -56,8 +57,11 @@ def convert_bag_to_video(args):
     # Force the .mp4 extension on file output name
     if args.output[-4:] != '.mp4':
         args.output += '.mp4'
-
-    storage_options = rosbag2_py.StorageOptions(uri=args.bagfile, storage_id=args.storage_id)
+    if os.path.isdir(args.bagfile):
+        # load storage id from metadata.yaml
+        storage_options = rosbag2_py.StorageOptions(uri=args.bagfile)
+    else:
+        storage_options = rosbag2_py.StorageOptions(uri=args.bagfile, storage_id=args.storage_id)
     # TODO(jacobperron): Shouldn't we be able to infer serialization format from metadaya.yaml?
     converter_options = rosbag2_py.ConverterOptions(
         input_serialization_format='cdr', output_serialization_format='cdr')
