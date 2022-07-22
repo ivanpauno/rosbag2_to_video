@@ -16,12 +16,12 @@ from ros2bag.verb import VerbExtension
 
 from . import api
 
+
 class ToVideo(VerbExtension):
     """Convert a ROS 2 bag into a video."""
 
     def add_arguments(self, parser, cli_name):
         api.add_arguments_to_parser(parser)
-        
 
     def main(self, *, args):
         api.convert_bag_to_video(args)
