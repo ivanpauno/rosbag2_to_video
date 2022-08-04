@@ -104,7 +104,6 @@ def get_topic_type(topic_name: str, topics_and_types) -> str:
     except StopIteration:
         raise CommandInputError(
             f'Topic {topic_name} was not recorded in the bagfile')
-        return None
     if topic_type not in ('sensor_msgs/msg/Image', 'sensor_msgs/msg/CompressedImage'):
         raise CommandInputError(
             'topic type should be sensor_msgs/msg/Image or '
