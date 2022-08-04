@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
+from genericpath import isdir
+import pathlib
 import sys
 from typing import Any
 from typing import Callable
@@ -60,7 +61,7 @@ def add_arguments_to_parser(argparser: 'ArgumentParser'):
         '-o',
         '--output',
         required=True,
-        help='Output filename (currently only supports MP4)'
+        help='Output filename. If not extension is provided, .mp4 is added.'
     )
     argparser.add_argument('--fps', type=float, required=True, help='Output frames per second')
     argparser.add_argument(
@@ -68,8 +69,18 @@ def add_arguments_to_parser(argparser: 'ArgumentParser'):
         type=str,
         default='sqlite3',
         help='Rosbag2 storage id. If a bag folder is provided, this is ignored.')
+    codec_group = argparser.add_mutually_exclusive_group()
+    codec_group.add_argument(
+        '--codec', type=cv2_video_writer_fourcc, default='avc1',
+        help=(
+            'Video codec fourcc. List of fourcc can be seen in http://mp4ra.org/#/codecs. '
+            'ffmpeg does not follow exactly that list, use --codec-dialog to see what is available'
+        ))
     argparser.add_argument(
-        '--codec', type=cv2_video_writer_fourcc, default="avc1", help='Video codec')
+        '--codec-dialog', action='store_true',
+        help=(
+            'Open video codec dialog. In some platforms, this will only print the available '
+            'fourcc options (which depend on the file format chosen).'))
 
 
 class CommandInputError(ValueError):
@@ -231,7 +242,7 @@ def create_sequential_image_bag_reader(
     :param storage_id: Storage id of the bagfile.
     :param topic_name: Name of the image topic.
     """
-    if os.path.isdir(bag_path):
+    if pathlib.Path(bag_path).is_dir():
         # load storage id from metadata.yaml
         storage_options = rosbag2_py.StorageOptions(uri=bag_path)
     else:
@@ -283,7 +294,7 @@ def convert_bag_to_video(
 ):
     """Create a bagfile from a video."""
     # Force the .mp4 extension on file output name
-    if output_path[-4:] != '.mp4':
+    if pathlib.PurePath(output_path).suffix == '':
         output_path += '.mp4'
     image_reader = create_sequential_image_bag_reader(bag_path, storage_id, topic_name)
     cv_image, start_stamp = image_reader.next()
@@ -308,9 +319,12 @@ def main(args):
 
     Wrapper of convert_bag_to_video(), that handles exceptions and prints errors instead.
     """
+    codec = args.codec
+    if args.codec_dialog:
+        codec = -1
     try:
         convert_bag_to_video(
-            args.bagfile, args.storage_id, args.topic, args.output, args.codec, args.fps)
+            args.bagfile, args.storage_id, args.topic, args.output, codec, args.fps)
     except CommandInputError as e:
         print(e, file=sys.stderr)
     except Exception as e:
